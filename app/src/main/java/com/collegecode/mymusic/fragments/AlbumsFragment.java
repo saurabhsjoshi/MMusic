@@ -31,12 +31,21 @@ public class AlbumsFragment extends Fragment {
         a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
         a.title = "Native";
 
-        for(int i = 0 ; i < 8; i++)
+        for(int i = 0 ; i < 3; i++)
            albums.add(a);
 
         a = new Album();
         a.album_art = "http://p.playserver1.com/ProductImages/8/6/2/1/7/9/3/3/33971268_700x700min_1.jpg";
         a.title = "#3";
+
+        albums.add(a);
+
+        a = new Album();
+        a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
+        a.title = "Native";
+
+        for(int i = 0 ; i < 3; i++)
+            albums.add(a);
 
         for(int i = 0 ; i < 7; i++)
             albums.add(a);

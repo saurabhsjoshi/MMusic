@@ -10,6 +10,6 @@
     android:stretchMode="columnWidth"
     android:gravity="center"
     android:layout_marginTop="10dp"
-    android:layout_marginLeft="15dp"
-    android:layout_marginRight="15dp"
+    android:layout_marginLeft="4dp"
+    android:layout_marginRight="4dp"
     />

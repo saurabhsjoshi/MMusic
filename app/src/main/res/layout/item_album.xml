@@ -5,8 +5,8 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_view"
     android:layout_gravity="center"
-    android:layout_width="162dp"
-    android:layout_height="215dp"
+    android:layout_width="179dp"
+    android:layout_height="210dp"
     card_view:cardCornerRadius="8dp">
 
     <RelativeLayout
@@ -34,11 +34,11 @@
             android:background="#33FFFFFF"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp"
+            android:paddingBottom="7dp"
+            android:paddingTop="7dp"
             android:text="@string/hello_world"
             android:textColor="#FFFFFF"
-            android:textSize="19sp"
+            android:textSize="15sp"
             app:typeface="roboto_light"
             />
         </RelativeLayout>

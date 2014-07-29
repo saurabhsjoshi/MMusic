@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.objects.Album;
 import com.collegecode.mymusic.objects.RoundedTransformation;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -27,6 +28,12 @@ public class AlbumsGridAdapter extends BaseAdapter {
         this.context = context;
     }
 
+
+    private static class ViewHolder{
+        ImageView img;
+        TextView txt_title;
+    }
+
     @Override
     public int getCount() {
         return albums.size();
@@ -39,27 +46,52 @@ public class AlbumsGridAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int i) {
-        return 0;
+        return i;
     }
 
-    @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-        LayoutInflater layoutInflater = LayoutInflater.from(context);
+    ViewHolder viewHolder;
 
-        if(view == null){
-            view = layoutInflater.inflate(R.layout.item_album,viewGroup,false);
+    @Override
+    public View getView(int i, View converView, ViewGroup viewGroup) {
+
+        if(converView == null){
+            viewHolder = new ViewHolder();
+
+            LayoutInflater layoutInflater = LayoutInflater.from(context);
+            converView = layoutInflater.inflate(R.layout.item_album,viewGroup,false);
+
+            viewHolder.img = (ImageView) converView.findViewById(R.id.img_album);
+            viewHolder.txt_title = (TextView) converView.findViewById(R.id.lbl_album);
+
+            converView.setTag(viewHolder);
         }
 
-        ImageView img = (ImageView) view.findViewById(R.id.img_album);
-        TextView txt_view = (TextView) view.findViewById(R.id.lbl_album);
+        else
+            viewHolder = (ViewHolder) converView.getTag();
 
-        txt_view.setText(albums.get(i).title);
+        viewHolder.txt_title.setText(albums.get(i).title);
+
         Picasso.with(context)
                 .load(albums.get(i).album_art)
-                .transform(new RoundedTransformation(16,0))
+                .transform(new RoundedTransformation(16))
                 .fit()
-                .into(img);
+                .into(viewHolder.img, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        /*Bitmap source = ((BitmapDrawable) viewHolder.img.getDrawable()).getBitmap();
+                        Palette palette = Palette.generate(source,32);
+                        viewHolder.txt_title.setTextColor(palette.getLightVibrantColor().getRgb());
+                        viewHolder.txt_title.setAlpha(0.5f);
+                        viewHolder.txt_title.setBackgroundColor(palette.getDarkMutedColor().getRgb());*/
+                    }
 
-        return view;
+                    @Override
+                    public void onError() {
+
+                    }
+                });
+
+
+        return converView;
     }
 }
