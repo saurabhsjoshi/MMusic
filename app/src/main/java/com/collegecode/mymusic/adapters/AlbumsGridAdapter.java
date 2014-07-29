@@ -6,9 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.objects.Album;
+import com.collegecode.mymusic.objects.RoundedTransformation;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -46,16 +48,16 @@ public class AlbumsGridAdapter extends BaseAdapter {
 
         if(view == null){
             view = layoutInflater.inflate(R.layout.item_album,viewGroup,false);
-            /*
-            Bitmap src = BitmapFactory.decodeResource(context.getResources(), R.drawable.script);
-            src = ThumbnailUtils.extractThumbnail(src, src.getWidth()/2, src.getHeight()/2, ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
-            img.setImageBitmap(src);*/
         }
 
         ImageView img = (ImageView) view.findViewById(R.id.img_album);
+        TextView txt_view = (TextView) view.findViewById(R.id.lbl_album);
+
+        txt_view.setText(albums.get(i).title);
         Picasso.with(context)
-                .load("http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg")
-                .resize(200,240)
+                .load(albums.get(i).album_art)
+                .transform(new RoundedTransformation(16,0))
+                .fit()
                 .into(img);
 
         return view;

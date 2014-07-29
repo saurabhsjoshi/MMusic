@@ -28,10 +28,18 @@ public class AlbumsFragment extends Fragment {
         ArrayList<Album> albums = new ArrayList<Album>();
 
         Album a = new Album();
+        a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
+        a.title = "Native";
 
-        for(int i = 0 ; i < 40; i++)
+        for(int i = 0 ; i < 8; i++)
            albums.add(a);
 
+        a = new Album();
+        a.album_art = "http://p.playserver1.com/ProductImages/8/6/2/1/7/9/3/3/33971268_700x700min_1.jpg";
+        a.title = "#3";
+
+        for(int i = 0 ; i < 7; i++)
+            albums.add(a);
         gridview.setAdapter(new AlbumsGridAdapter(getActivity(), albums));
 
         return view;
