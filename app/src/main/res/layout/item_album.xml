@@ -31,7 +31,7 @@
             android:layout_alignBottom="@id/img_album"
             android:layout_alignLeft="@id/img_album"
             android:layout_alignRight="@id/img_album"
-            android:background="#33FFFFFF"
+            android:background="#80000000"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:paddingBottom="7dp"

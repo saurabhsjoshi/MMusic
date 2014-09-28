@@ -28,7 +28,6 @@ public class AlbumsGridAdapter extends BaseAdapter {
         this.context = context;
     }
 
-
     private static class ViewHolder{
         ImageView img;
         TextView txt_title;
