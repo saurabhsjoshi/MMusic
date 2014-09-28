@@ -1,6 +1,11 @@
 package com.collegecode.mymusic.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
+import android.support.v7.graphics.Palette;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +19,7 @@ import com.collegecode.mymusic.objects.RoundedTransformation;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -70,27 +76,49 @@ public class AlbumsGridAdapter extends BaseAdapter {
 
         viewHolder.txt_title.setText(albums.get(i).title);
 
-        Picasso.with(context)
-                .load(albums.get(i).album_art)
-                .transform(new RoundedTransformation(16))
-                .fit()
-                .into(viewHolder.img, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        /*Bitmap source = ((BitmapDrawable) viewHolder.img.getDrawable()).getBitmap();
-                        Palette palette = Palette.generate(source,32);
-                        viewHolder.txt_title.setTextColor(palette.getLightVibrantColor().getRgb());
-                        viewHolder.txt_title.setAlpha(0.5f);
-                        viewHolder.txt_title.setBackgroundColor(palette.getDarkMutedColor().getRgb());*/
-                    }
-
-                    @Override
-                    public void onError() {
-
-                    }
-                });
-
+        new onPostLoad(viewHolder).loadImage(albums.get(i).album_art);
 
         return converView;
+    }
+
+    private class onPostLoad{
+        private final WeakReference<ViewHolder> viewHolderReference;
+
+        public onPostLoad(ViewHolder viewHolder_weak){
+            viewHolderReference = new WeakReference<ViewHolder>(viewHolder_weak);
+        }
+
+        public void loadImage(String album_url){
+            Picasso.with(context)
+                    .load(album_url)
+                    .transform(new RoundedTransformation(16))
+                    .fit()
+                    .into(viewHolderReference.get().img, new Callback() {
+                        @Override
+                        public void onSuccess() {
+
+                            Bitmap source = ((BitmapDrawable) viewHolderReference.get().img.getDrawable()).getBitmap();
+                            Palette.generateAsync(source, 24, new Palette.PaletteAsyncListener() {
+                                @Override
+                                public void onGenerated(Palette palette) {
+                                    try{
+                                        viewHolderReference.get().txt_title.setBackgroundColor(palette.getDarkVibrantColor().getRgb());
+                                        viewHolderReference.get().txt_title.setTextColor(palette.getLightVibrantColor().getRgb());
+
+                                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                                            viewHolderReference.get().txt_title.setAlpha(0.7f);
+
+                                    }catch (Exception ignore){
+                                        viewHolderReference.get().txt_title.setBackgroundColor(Color.parseColor("#80000000"));
+                                        viewHolderReference.get().txt_title.setTextColor(Color.WHITE);
+
+                                    }
+                                }
+                            });
+                        }
+                        @Override
+                        public void onError() {}});
+        }
+
     }
 }

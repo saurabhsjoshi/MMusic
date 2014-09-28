@@ -30,7 +30,6 @@ public class AlbumsFragment extends Fragment {
         Album a = new Album();
         a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
         a.title = "Native";
-
         for(int i = 0 ; i < 3; i++)
            albums.add(a);
 
@@ -41,11 +40,10 @@ public class AlbumsFragment extends Fragment {
         albums.add(a);
 
         a = new Album();
-        a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
-        a.title = "Native";
+        a.album_art = "http://spinfm.ky/wp-content/uploads/2014/07/Calvin-Harris-Summer.jpg";
+        a.title = "Summer";
 
-        for(int i = 0 ; i < 3; i++)
-            albums.add(a);
+        albums.add(a);
 
         for(int i = 0 ; i < 7; i++)
             albums.add(a);
