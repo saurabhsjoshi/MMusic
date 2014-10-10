@@ -11,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             runProguard false
@@ -39,5 +40,6 @@ dependencies {
     compile 'com.android.support:cardview-v7:+'
     compile 'com.android.support:palette-v7:+'
     compile 'com.github.johnkil.android-robototextview:robototextview:2.1.0'
+    compile 'com.sothree.slidinguppanel:library:+'
     compile 'com.squareup.picasso:picasso:2.3.3'
 }

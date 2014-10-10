@@ -9,9 +9,13 @@ import android.widget.GridView;
 
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.adapters.AlbumsGridAdapter;
-import com.collegecode.mymusic.objects.Album;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by saurabh on 7/28/14.
@@ -23,31 +27,17 @@ public class AlbumsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_albums,container, false);
-        GridView gridview = (GridView) view.findViewById(R.id.gridview);
+        final GridView gridview = (GridView) view.findViewById(R.id.gridview);
 
-        ArrayList<Album> albums = new ArrayList<Album>();
-
-        Album a = new Album();
-        a.album_art = "http://poponandon.com/wp-content/uploads/2013/04/onerepublic-native-review-2013.jpg";
-        a.title = "Native";
-        for(int i = 0 ; i < 3; i++)
-           albums.add(a);
-
-        a = new Album();
-        a.album_art = "http://p.playserver1.com/ProductImages/8/6/2/1/7/9/3/3/33971268_700x700min_1.jpg";
-        a.title = "#3";
-
-        albums.add(a);
-
-        a = new Album();
-        a.album_art = "http://spinfm.ky/wp-content/uploads/2014/07/Calvin-Harris-Summer.jpg";
-        a.title = "Summer";
-
-        albums.add(a);
-
-        for(int i = 0 ; i < 7; i++)
-            albums.add(a);
-        gridview.setAdapter(new AlbumsGridAdapter(getActivity(), albums));
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Albums");
+        query.orderByAscending("AlbumID");
+        query.fromLocalDatastore();
+        query.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> lst_albums, ParseException e) {
+                ArrayList<ParseObject> albums = new ArrayList<ParseObject>(lst_albums);
+                gridview.setAdapter(new AlbumsGridAdapter(getActivity(), albums));
+            }
+        });
 
         return view;
     }

@@ -16,7 +16,6 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
 <resources>
 
     <style name="Theme.Style" parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -37,6 +36,7 @@
 
     <style name="ActionBar.Solid.Style" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
         <item name="background">@drawable/ab_solid_style</item>
+
         <item name="backgroundStacked">@drawable/ab_stacked_solid_style</item>
         <item name="backgroundSplit">@drawable/ab_bottom_solid_style</item>
         <item name="progressBarStyle">@style/ProgressBar.Style</item>
@@ -57,6 +57,7 @@
 
     <style name="ActionBarTabStyle.Style" parent="@style/Widget.AppCompat.ActionBar.TabView">
         <item name="android:background">@drawable/tab_indicator_ab_style</item>
+
     </style>
 	
     <style name="DropDownNav.Style" parent="@style/Widget.AppCompat.Spinner.DropDown.ActionBar">

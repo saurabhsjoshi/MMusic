@@ -7,4 +7,5 @@ public class Song {
     public String title;
     public String album;
     public String album_art;
+    public String album_id;
 }

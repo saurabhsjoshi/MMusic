@@ -1,11 +1,6 @@
 package com.collegecode.mymusic.adapters;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
-import android.support.v7.graphics.Palette;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,22 +9,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.collegecode.mymusic.R;
-import com.collegecode.mymusic.objects.Album;
 import com.collegecode.mymusic.objects.RoundedTransformation;
-import com.squareup.picasso.Callback;
+import com.parse.ParseObject;
 import com.squareup.picasso.Picasso;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
  * Created by saurabh on 7/28/14.
  */
 public class AlbumsGridAdapter extends BaseAdapter {
-    private ArrayList<Album> albums;
+    private ArrayList<ParseObject> albums;
     private Context context;
 
-    public AlbumsGridAdapter(Context context, ArrayList<Album> albums){
+    public AlbumsGridAdapter(Context context, ArrayList<ParseObject> albums){
         this.albums = albums;
         this.context = context;
     }
@@ -74,14 +67,20 @@ public class AlbumsGridAdapter extends BaseAdapter {
         else
             viewHolder = (ViewHolder) converView.getTag();
 
-        viewHolder.txt_title.setText(albums.get(i).title);
+        viewHolder.txt_title.setText(albums.get(i).getString("Title"));
 
-        new onPostLoad(viewHolder).loadImage(albums.get(i).album_art);
+        Picasso.with(context)
+                .load(albums.get(i).getString("AlbumArt"))
+                .transform(new RoundedTransformation(16))
+                .fit()
+                .into(viewHolder.img);
+
+        //new onPostLoad(viewHolder).loadImage(albums.get(i).album_art);
 
         return converView;
     }
 
-    private class onPostLoad{
+  /*  private class onPostLoad{
         private final WeakReference<ViewHolder> viewHolderReference;
 
         public onPostLoad(ViewHolder viewHolder_weak){
@@ -120,5 +119,5 @@ public class AlbumsGridAdapter extends BaseAdapter {
                         public void onError() {}});
         }
 
-    }
+    }*/
 }
