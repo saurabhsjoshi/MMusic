@@ -7,13 +7,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.collegecode.mymusic.Home;
 import com.collegecode.mymusic.R;
+import com.parse.ParseObject;
 import com.squareup.picasso.Picasso;
 
 /**
  * Created by saurabh on 14-10-03.
  */
 public class NowPlayingFragment extends Fragment {
+    private ParseObject nowPlaying;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -21,8 +24,10 @@ public class NowPlayingFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_nowplaying,container, false);
         ImageView img = (ImageView) view.findViewById(R.id.img_albumArt);
 
+        nowPlaying = ((Home) getActivity()).cur_playing;
+
         Picasso.with(getActivity())
-                .load("https://dl.dropboxusercontent.com/u/37268256/MMusic/Ayushyawar-Bolu-Kahi/albumart.jpg")
+                .load(nowPlaying.getString("CoverArt"))
                 .fit()
                 .into(img);
         return view;

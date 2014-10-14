@@ -7,6 +7,7 @@
     android:layout_gravity="center"
     android:layout_width="179dp"
     android:layout_height="210dp"
+    android:background="@drawable/song_list_selector"
     card_view:cardCornerRadius="8dp">
 
     <RelativeLayout

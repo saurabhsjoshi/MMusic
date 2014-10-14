@@ -5,8 +5,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.collegecode.mymusic.Home;
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.adapters.SongsListAdapter;
 import com.parse.FindCallback;
@@ -35,6 +37,16 @@ public class SongsFragment extends Fragment {
             public void done(List<ParseObject> lst_songs, ParseException e) {
                 ArrayList<ParseObject> songs = new ArrayList<ParseObject>(lst_songs);
                 listView.setAdapter(new SongsListAdapter(getActivity(),0, songs));
+            }
+        });
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                try{
+                    ((Home) getActivity()).cur_playing = (ParseObject) listView.getItemAtPosition(i);
+                    ((Home)getActivity()).startSong();
+                }catch (Exception e){e.printStackTrace();}
             }
         });
         return view;

@@ -1,9 +1,14 @@
 package com.collegecode.mymusic;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -17,8 +22,15 @@ import android.view.View;
 import com.collegecode.mymusic.adapters.ViewPagerAdapter;
 import com.collegecode.mymusic.fragments.NowPlayingFragment;
 import com.collegecode.mymusic.fragments.NowPlayingSmallFragment;
+import com.collegecode.mymusic.objects.Constants;
 import com.collegecode.mymusic.objects.SlidingTabs.SlidingTabLayout;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
+import java.util.List;
 
 
 public class Home extends ActionBarActivity {
@@ -26,12 +38,20 @@ public class Home extends ActionBarActivity {
     private SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
+    private NowPlayingSmallFragment nowPlayingFragmentInstance;
+
+
+    public PlayBackService playBackService;
+    private Intent playIntent;
+    public ParseObject cur_playing;
+    public boolean isPlaying = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         if(preferences.getBoolean("newUser", true)) {
@@ -57,7 +77,6 @@ public class Home extends ActionBarActivity {
 
             @Override
             public void onPanelCollapsed(View view) {
-                System.out.println("ANCHORED");
                 transaction = getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.frm_nowPlaying, new NowPlayingSmallFragment());
                 transaction.commit();
@@ -92,8 +111,84 @@ public class Home extends ActionBarActivity {
             }
 
         });
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
+        query.orderByAscending("Title");
+        query.fromLocalDatastore();
+        query.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> lst_songs, ParseException e) {
+                cur_playing = lst_songs.get(0);
+                updateSmallPlayer();
+            }
+        });
     }
 
+    //connect to the service
+    private ServiceConnection musicConnection = new ServiceConnection(){
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            PlayBackService.MusicBinder binder = (PlayBackService.MusicBinder)service;
+            //get service
+            playBackService = binder.getService();
+            playBackService.playSong(cur_playing);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+    };
+
+    private void updateSmallPlayer(){
+        try{
+            nowPlayingFragmentInstance = (NowPlayingSmallFragment)getSupportFragmentManager().findFragmentById(R.id.frm_nowPlaying);
+            nowPlayingFragmentInstance.setUI();
+        }
+        catch(Exception ignore){}
+    }
+
+    public void startSong(){
+        if(playIntent==null){
+            playIntent = new Intent(this, PlayBackService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+            startService(playIntent);
+        }
+        else{
+            unbindService(musicConnection);
+            stopService(playIntent);
+            playIntent = new Intent(this, PlayBackService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+            startService(playIntent);
+        }
+        isPlaying = true;
+        updateSmallPlayer();
+
+    }
+
+    public void pauseMusic(){
+        if(playBackService.isPreparing)
+            playBackService.startAfterPrepare = false;
+        else
+            playBackService.pauseSong();
+
+        isPlaying = false;
+        updateSmallPlayer();
+
+    }
+
+    public void playMusic(){
+        if(playBackService == null)
+            startSong();
+        else{
+            if(!playBackService.startAfterPrepare)
+                playBackService.startAfterPrepare = true;
+
+            playBackService.playSong();
+        }
+        isPlaying = true;
+        updateSmallPlayer();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -103,11 +198,51 @@ public class Home extends ActionBarActivity {
     }
 
     @Override
+    protected void onStop() {
+        if(playBackService!=null)
+            playBackService.showNotification(cur_playing);
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        if(playBackService!=null && isPlaying)
+            playBackService.showNotification(cur_playing);
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        if(playBackService!=null){
+            playBackService.stopNotification();
+            if(playBackService.isPlaying()){
+                isPlaying = true;
+                cur_playing = playBackService.getCurSong();
+            }
+            else
+                isPlaying = false;
+            updateSmallPlayer();
+        }
+
+        super.onResume();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        if(playIntent != null){
+            unbindService(musicConnection);
+            stopService(playIntent);
+        }
+        super.onDestroy();
+    }
+
+    @Override
     public void onBackPressed() {
         if (mLayout != null && mLayout.isPanelExpanded() || mLayout.isPanelAnchored())
             mLayout.collapsePanel();
         else
-            super.onBackPressed();
+            this.moveTaskToBack(true);
     }
 
     @Override
