@@ -25,7 +25,6 @@ public class PlayBackService extends Service implements
         MediaPlayer.OnCompletionListener,
         MediaPlayer.OnBufferingUpdateListener
 {
-
     NotificationManager mNotificationManager;
     private boolean isForeground = false;
     private ParseObject CUR_SONG;
@@ -116,6 +115,14 @@ public class PlayBackService extends Service implements
         player.start();
     }
 
+    public int getTotalTime(){
+        return player.getDuration();
+    }
+
+    public int getCurrentTime(){
+        return player.getCurrentPosition();
+    }
+
     public void scrub(int pos){
         player.seekTo(pos);
     }
@@ -139,10 +146,12 @@ public class PlayBackService extends Service implements
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isPreparing = false;
-        if(startAfterPrepare)
+
+        if(startAfterPrepare){
             player.start();
-        if(isForeground)
-            setUpAsForeground(CUR_SONG);
+            if(isForeground)
+                setUpAsForeground(CUR_SONG);
+        }
     }
 
     @Override
@@ -164,9 +173,6 @@ public class PlayBackService extends Service implements
 
     void setUpAsForeground(ParseObject song) {
         Intent notificationIntent = new Intent(this, Home.class);
-        //notificationIntent.setAction(Constants.ACTION.MAIN_ACTION);
-        //notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-          //      | IntentCompat.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 

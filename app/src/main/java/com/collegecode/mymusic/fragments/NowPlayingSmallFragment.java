@@ -47,14 +47,6 @@ public class NowPlayingSmallFragment extends Fragment {
         return view;
     }
 
-    public void preparing(){
-
-    }
-
-    public void ready(){
-
-    }
-
     public void setUI(){
         try{
             boolean isPlaying = ((Home) getActivity()).isPlaying;

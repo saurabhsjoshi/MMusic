@@ -35,7 +35,7 @@ import java.util.List;
 
 public class Home extends ActionBarActivity {
 
-    private SlidingUpPanelLayout mLayout;
+    public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
     private NowPlayingSmallFragment nowPlayingFragmentInstance;
@@ -51,13 +51,18 @@ public class Home extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        boolean is_active = true;
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         if(preferences.getBoolean("newUser", true)) {
+            is_active = false;
             startActivity(new Intent(this, NewUser.class).addFlags(IntentCompat.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
             overridePendingTransition(R.anim.enter, R.anim.exit);
+
         }
+
         getSupportActionBar().setIcon(R.drawable.ic_home);
 
         ViewPager mViewPager;
@@ -90,7 +95,9 @@ public class Home extends ActionBarActivity {
             }
 
             @Override
-            public void onPanelAnchored(View view) {}
+            public void onPanelAnchored(View view) {
+                updateSmallPlayer();
+            }
 
             @Override
             public void onPanelHidden(View view) {}
@@ -112,15 +119,17 @@ public class Home extends ActionBarActivity {
 
         });
 
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
-        query.orderByAscending("Title");
-        query.fromLocalDatastore();
-        query.findInBackground(new FindCallback<ParseObject>() {
-            public void done(List<ParseObject> lst_songs, ParseException e) {
-                cur_playing = lst_songs.get(0);
-                updateSmallPlayer();
-            }
-        });
+        if(is_active){
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
+            query.orderByAscending("Title");
+            query.fromLocalDatastore();
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> lst_songs, ParseException e) {
+                    cur_playing = lst_songs.get(0);
+                    updateSmallPlayer();
+                }
+            });
+        }
     }
 
     //connect to the service
@@ -199,14 +208,14 @@ public class Home extends ActionBarActivity {
 
     @Override
     protected void onStop() {
-        if(playBackService!=null)
+        if(playBackService!=null && playBackService.isPlaying())
             playBackService.showNotification(cur_playing);
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        if(playBackService!=null && isPlaying)
+        if(playBackService!=null && (playBackService.isPreparing || playBackService.isPlaying()))
             playBackService.showNotification(cur_playing);
         super.onPause();
     }
@@ -226,7 +235,6 @@ public class Home extends ActionBarActivity {
 
         super.onResume();
     }
-
 
     @Override
     protected void onDestroy() {

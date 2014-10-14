@@ -2,12 +2,120 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <ImageView
         android:id="@+id/img_albumArt"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="fill_parent"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_alignParentTop="true"
+        android:background="#E6ffffff">
+
+        <ImageView
+            android:id="@+id/img_small_albumArt"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"/>
+
+        <com.devspark.robototextview.widget.RobotoTextView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/txt_title"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="7dp"
+            android:layout_toRightOf="@id/img_small_albumArt"
+            app:typeface="roboto_medium"
+            android:layout_marginLeft="10dp"
+            android:text="Title of the song here"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+        <com.devspark.robototextview.widget.RobotoTextView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/txt_album"
+            android:layout_below="@id/txt_title"
+            android:layout_toRightOf="@id/img_small_albumArt"
+            android:layout_marginLeft="10dp"
+            app:typeface="roboto_medium"
+            android:text="Album title here"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/controls_cotainer"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#E6ffffff">
+        
+        <SeekBar
+            android:id="@+id/seek_bar"
+            android:layout_marginTop="1dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/btn_play"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:scaleType="fitXY"
+            android:layout_below="@id/seek_bar"
+            android:layout_marginBottom="5dp"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/ic_media_pause"
+            android:background="@android:color/transparent"/>
+
+        <ImageButton
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:scaleType="fitXY"
+            android:layout_below="@id/seek_bar"
+            android:layout_toLeftOf="@id/btn_play"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="15dp"
+            android:src="@drawable/ic_action_previous"
+            android:background="@android:color/transparent"/>
+
+        <ImageButton
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:scaleType="fitXY"
+            android:layout_below="@id/seek_bar"
+            android:layout_toRightOf="@id/btn_play"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/ic_media_next"
+            android:layout_marginLeft="15dp"
+            android:background="@android:color/transparent"/>
+        </RelativeLayout>
+
+    <com.devspark.robototextview.widget.RobotoTextView
+        android:id="@+id/txt_cur_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/controls_cotainer"
         android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="10dp"/>
+        android:layout_marginLeft="2dp"
+        android:textColor="@android:color/white"
+        app:typeface="roboto_bold"
+        android:text="0:00"/>
+
+    <com.devspark.robototextview.widget.RobotoTextView
+        android:id="@+id/txt_total_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/controls_cotainer"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="2dp"
+        android:textColor="@android:color/white"
+        app:typeface="roboto_bold"
+        android:text="0:00"/>
 </RelativeLayout>
