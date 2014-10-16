@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.collegecode.mymusic.Home;
 import com.collegecode.mymusic.PlayBackService;
 import com.collegecode.mymusic.R;
+import com.collegecode.mymusic.objects.STATES;
 import com.parse.ParseObject;
 import com.squareup.picasso.Picasso;
 
@@ -30,7 +31,7 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
     TextView txt_cur;
     TextView txt_total;
     Thread t;
-    boolean isPlaying;
+    STATES state;
 
     private boolean total_is_set = false;
 
@@ -40,10 +41,11 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
 
         instance = ((Home) getActivity()).playBackService;
 
+
         View view = inflater.inflate(R.layout.fragment_nowplaying, container, false);
         ImageView img = (ImageView) view.findViewById(R.id.img_albumArt);
 
-        nowPlaying = ((Home) getActivity()).cur_playing;
+        nowPlaying = instance.getCurSong();
 
         pausePlay = (ImageButton) view.findViewById(R.id.btn_play);
         seekBar = (SeekBar) view.findViewById(R.id.seek_bar);
@@ -51,31 +53,25 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
         txt_cur = (TextView) view.findViewById(R.id.txt_cur_time);
         txt_total = (TextView) view.findViewById(R.id.txt_total_time);
 
-        isPlaying = ((Home) getActivity()).isPlaying;
+        state = instance.state;
 
         pausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(isPlaying)
-                {
-                    isPlaying = false;
-                    ((Home) getActivity()).pauseMusic();
+                if(state == STATES.PLAYING || state == STATES.PREPARING){
+                    instance.pauseSong();
+                    stopThread();
                 }
                 else{
-                    isPlaying = true;
-                    if(instance!= null)
-                        ((Home)getActivity()).playMusic();
-                    else{
-                        ((Home)getActivity()).startSong();
-                        instance = ((Home) getActivity()).playBackService;
-                    }
+                    instance.playSong();
+                    startThread();
                 }
                 setUI();
-                if(t == null)
-                    startThread();
             }
         });
+
         setUI();
+
         Picasso.with(getActivity())
                 .load(nowPlaying.getString("CoverArt"))
                 .fit()
@@ -94,62 +90,73 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
         txt_title.setText(nowPlaying.getString("Title"));
         txt_album.setText(nowPlaying.getString("Album"));
         startThread();
-
         return view;
 
     }
 
     private void setUI(){
-        if(isPlaying)
+        state = instance.state;
+        if(state == STATES.PLAYING || state == STATES.PREPARING)
             pausePlay.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_media_pause));
         else
             pausePlay.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_action_play));
-
     }
 
+
+
     private void startThread(){
-        t = new Thread(new Runnable() {
+        if(t!=null)
+            t.interrupt();
+
+        t = new Thread(){
             @Override
             public void run() {
-                while (true){
-                    if(instance!=null ){
+                while (!Thread.interrupted()){
+                    System.out.println("Calledx");
+                    if(instance!=null){
                         try{
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    seekBar.setMax(instance.getTotalTime());
-                                    seekBar.setProgress(instance.getCurrentTime());
-                                    String cur =  String.format("%02d:%02d",
-                                            TimeUnit.MILLISECONDS.toMinutes(instance.getCurrentTime()) -
-                                                    TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(instance.getCurrentTime())),
-                                            TimeUnit.MILLISECONDS.toSeconds(instance.getCurrentTime()) -
-                                                    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(instance.getCurrentTime())));
-                                    txt_cur.setText(cur);
-                                    if(!total_is_set){
-                                        String total = String.format("%02d:%02d",
-                                                TimeUnit.MILLISECONDS.toMinutes(instance.getTotalTime()) -
-                                                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(instance.getTotalTime())),
-                                                TimeUnit.MILLISECONDS.toSeconds(instance.getTotalTime()) -
-                                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(instance.getTotalTime())));
-                                        txt_total.setText(total);
-                                        total_is_set = true;
-                                    }
+                                    try{
+                                        seekBar.setMax(instance.getTotalTime());
+                                        seekBar.setProgress(instance.getCurrentTime());
+                                        String cur =  String.format("%02d:%02d",
+                                                TimeUnit.MILLISECONDS.toMinutes(instance.getCurrentTime()) -
+                                                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(instance.getCurrentTime())),
+                                                TimeUnit.MILLISECONDS.toSeconds(instance.getCurrentTime()) -
+                                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(instance.getCurrentTime())));
+                                        txt_cur.setText(cur);
+                                        if(!total_is_set){
+                                            String total = String.format("%02d:%02d",
+                                                    TimeUnit.MILLISECONDS.toMinutes(instance.getTotalTime()) -
+                                                            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(instance.getTotalTime())),
+                                                    TimeUnit.MILLISECONDS.toSeconds(instance.getTotalTime()) -
+                                                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(instance.getTotalTime())));
+                                            txt_total.setText(total);
+                                            total_is_set = true;
+                                        }
+                                    }catch (Exception ignore){}
                                 }
                             });
-                            Thread.sleep(1000);
+                            try {
+                                Thread.sleep(1000);
+                            }catch (InterruptedException e){Thread.currentThread().interrupt();}
+
                         }catch (Exception ignore){}
                     }
                 }
-
             }
-        });
+        };
+
         t.start();
     }
 
     @Override
     public void onResume() {
-        isPlaying = ((Home) getActivity()).isPlaying;
+        state = instance.state;
         setUI();
+        startThread();
         super.onResume();
     }
 
@@ -158,8 +165,7 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
         if(b){
             try {
                 if(t != null){
-                    t.interrupt();
-                    t = null;
+                    stopThread();
                 }
                 String cur =  String.format("%02d:%02d",
                         TimeUnit.MILLISECONDS.toMinutes(i) -
@@ -168,7 +174,8 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(i)));
                 txt_cur.setText(cur);
                 instance.scrub(i);
-                t.start();
+                startThread();
+
 
             }catch (Exception ignore){}
         }
@@ -184,12 +191,20 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
 
     }
 
+    public void stopThread(){
+        if(t != null)
+            t.interrupt();
+    }
+
+    @Override
+    public void onPause() {
+        stopThread();
+        super.onPause();
+    }
+
     @Override
     public void onDestroy() {
-        if(t != null){
-            t.interrupt();
-            t= null;
-        }
+        stopThread();
         super.onDestroy();
     }
 }

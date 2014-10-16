@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.collegecode.mymusic.Home;
+import com.collegecode.mymusic.PlayBackService;
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.adapters.SongsListAdapter;
 import com.parse.FindCallback;
@@ -24,18 +25,24 @@ import java.util.List;
  */
 public class SongsFragment extends Fragment {
 
+    private PlayBackService playBackService;
+    private ArrayList<ParseObject> songs;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_songs,container, false);
         final ListView listView = (ListView) view.findViewById(R.id.list);
+        playBackService = ((Home) getActivity()).playBackService;
+
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
         query.orderByAscending("Title");
         query.fromLocalDatastore();
+
         query.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> lst_songs, ParseException e) {
-                ArrayList<ParseObject> songs = new ArrayList<ParseObject>(lst_songs);
+                songs = new ArrayList<ParseObject>(lst_songs);
                 listView.setAdapter(new SongsListAdapter(getActivity(),0, songs));
             }
         });
@@ -44,8 +51,10 @@ public class SongsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 try{
-                    ((Home) getActivity()).cur_playing = (ParseObject) listView.getItemAtPosition(i);
-                    ((Home)getActivity()).startSong();
+                    playBackService.setList(songs,i);
+                    playBackService.resetPlayer();
+                    playBackService.playSong();
+                    ((Home)getActivity()).updateSmallPlayer();
                 }catch (Exception e){e.printStackTrace();}
             }
         });

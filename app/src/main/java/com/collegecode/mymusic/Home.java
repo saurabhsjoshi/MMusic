@@ -1,5 +1,6 @@
 package com.collegecode.mymusic;
 
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import com.collegecode.mymusic.adapters.ViewPagerAdapter;
 import com.collegecode.mymusic.fragments.NowPlayingFragment;
 import com.collegecode.mymusic.fragments.NowPlayingSmallFragment;
 import com.collegecode.mymusic.objects.Constants;
+import com.collegecode.mymusic.objects.STATES;
 import com.collegecode.mymusic.objects.SlidingTabs.SlidingTabLayout;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -30,6 +32,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -38,14 +41,36 @@ public class Home extends ActionBarActivity {
     public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
-    private NowPlayingSmallFragment nowPlayingFragmentInstance;
-
 
     public PlayBackService playBackService;
     private Intent playIntent;
-    public ParseObject cur_playing;
-    public boolean isPlaying = false;
 
+    private ProgressDialog progressDialog;
+
+    //connect to the service
+    private ServiceConnection musicConnection = new ServiceConnection(){
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            PlayBackService.MusicBinder binder = (PlayBackService.MusicBinder)service;
+            playBackService = binder.getService();
+
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
+            query.orderByAscending("Title");
+            query.fromLocalDatastore();
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> lst_songs, ParseException e) {
+                    playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
+                    progressDialog.dismiss();
+                    loadUI();
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,15 +85,27 @@ public class Home extends ActionBarActivity {
             is_active = false;
             startActivity(new Intent(this, NewUser.class).addFlags(IntentCompat.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
             overridePendingTransition(R.anim.enter, R.anim.exit);
-
+            finish();
         }
 
         getSupportActionBar().setIcon(R.drawable.ic_home);
 
+        if(is_active) {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(true);
+            progressDialog.show();
+            connectToService();
+        }
+    }
+
+    private void loadUI(){
+
         ViewPager mViewPager;
         SlidingTabLayout mSlidingTabLayout;
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentManager fragmentManager = getSupportFragmentManager();
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPager.setAdapter(new ViewPagerAdapter(fragmentManager));
@@ -83,6 +120,9 @@ public class Home extends ActionBarActivity {
             @Override
             public void onPanelCollapsed(View view) {
                 transaction = getSupportFragmentManager().beginTransaction();
+                try{
+                    ((NowPlayingFragment) getSupportFragmentManager().findFragmentById(R.id.frm_nowPlaying)).stopThread();
+                }catch (Exception ignore){}
                 transaction.replace(R.id.frm_nowPlaying, new NowPlayingSmallFragment());
                 transaction.commit();
             }
@@ -109,7 +149,7 @@ public class Home extends ActionBarActivity {
         mSlidingTabLayout.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
             @Override
             public int getIndicatorColor(int position) {
-                return Color.rgb(0,153,204);
+                return Color.rgb(0, 153, 204);
             }
 
             @Override
@@ -118,85 +158,25 @@ public class Home extends ActionBarActivity {
             }
 
         });
+    }
 
-        if(is_active){
-            ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
-            query.orderByAscending("Title");
-            query.fromLocalDatastore();
-            query.findInBackground(new FindCallback<ParseObject>() {
-                public void done(List<ParseObject> lst_songs, ParseException e) {
-                    cur_playing = lst_songs.get(0);
-                    updateSmallPlayer();
-                }
-            });
+    public void connectToService() {
+        if (playIntent == null) {
+            playIntent = new Intent(this, PlayBackService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+            startService(playIntent);
         }
     }
 
-    //connect to the service
-    private ServiceConnection musicConnection = new ServiceConnection(){
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            PlayBackService.MusicBinder binder = (PlayBackService.MusicBinder)service;
-            //get service
-            playBackService = binder.getService();
-            playBackService.playSong(cur_playing);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
-    };
-
-    private void updateSmallPlayer(){
+    public void updateSmallPlayer(){
         try{
+            NowPlayingSmallFragment nowPlayingFragmentInstance;
             nowPlayingFragmentInstance = (NowPlayingSmallFragment)getSupportFragmentManager().findFragmentById(R.id.frm_nowPlaying);
             nowPlayingFragmentInstance.setUI();
+
         }
         catch(Exception ignore){}
-    }
-
-    public void startSong(){
-        if(playIntent==null){
-            playIntent = new Intent(this, PlayBackService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
-            startService(playIntent);
-        }
-        else{
-            unbindService(musicConnection);
-            stopService(playIntent);
-            playIntent = new Intent(this, PlayBackService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
-            startService(playIntent);
-        }
-        isPlaying = true;
-        updateSmallPlayer();
-
-    }
-
-    public void pauseMusic(){
-        if(playBackService.isPreparing)
-            playBackService.startAfterPrepare = false;
-        else
-            playBackService.pauseSong();
-
-        isPlaying = false;
-        updateSmallPlayer();
-
-    }
-
-    public void playMusic(){
-        if(playBackService == null)
-            startSong();
-        else{
-            if(!playBackService.startAfterPrepare)
-                playBackService.startAfterPrepare = true;
-
-            playBackService.playSong();
-        }
-        isPlaying = true;
-        updateSmallPlayer();
     }
 
     @Override
@@ -208,15 +188,18 @@ public class Home extends ActionBarActivity {
 
     @Override
     protected void onStop() {
-        if(playBackService!=null && playBackService.isPlaying())
-            playBackService.showNotification(cur_playing);
+        if(playBackService!=null && playBackService.state == STATES.PLAYING)
+            playBackService.showNotification();
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        if(playBackService!=null && (playBackService.isPreparing || playBackService.isPlaying()))
-            playBackService.showNotification(cur_playing);
+        if(playBackService!=null
+                &&((playBackService.state == STATES.PREPARING
+                && playBackService.startAfterPrepare)
+                || playBackService.state == STATES.PLAYING))
+            playBackService.showNotification();
         super.onPause();
     }
 
@@ -224,15 +207,8 @@ public class Home extends ActionBarActivity {
     protected void onResume() {
         if(playBackService!=null){
             playBackService.stopNotification();
-            if(playBackService.isPlaying()){
-                isPlaying = true;
-                cur_playing = playBackService.getCurSong();
-            }
-            else
-                isPlaying = false;
             updateSmallPlayer();
         }
-
         super.onResume();
     }
 

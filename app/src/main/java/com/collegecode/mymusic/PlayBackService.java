@@ -14,7 +14,10 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.collegecode.mymusic.objects.Constants;
+import com.collegecode.mymusic.objects.STATES;
 import com.parse.ParseObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by saurabh on 14-10-11.
@@ -25,13 +28,32 @@ public class PlayBackService extends Service implements
         MediaPlayer.OnCompletionListener,
         MediaPlayer.OnBufferingUpdateListener
 {
+
     NotificationManager mNotificationManager;
+
+    //Check if foreground
     private boolean isForeground = false;
+
+    //Current Status
+    public STATES state = STATES.IDLE;
+
+    //Currently Playing Song
     private ParseObject CUR_SONG;
+    //Current Song List playing
+    public ArrayList<ParseObject> CUR_SONG_LIST;
+    //Current Index in the List
+    public int CUR_INDEX;
+
+    //Check if playing is cancelled
     public boolean startAfterPrepare = true;
-    public boolean isPreparing = false;
+
+    //MediaPlayer instance
     private MediaPlayer player;
+
+    //Binder for Activity
     private final IBinder musicBind = new MusicBinder();
+
+    //Logger
     private static final String LOG_TAG = "com.collegecode.playbackservice";
 
     @Override
@@ -41,32 +63,33 @@ public class PlayBackService extends Service implements
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
-            player = new MediaPlayer(); // initialize it here
-            mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            player.setOnPreparedListener(this);
-            player.setOnErrorListener(this);
-            player.setOnBufferingUpdateListener(this);
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            initMusicPlayer();
-        }
-        else if (intent.getAction().equals(Constants.ACTION.PREV_ACTION)) {
-            Log.i(LOG_TAG, "Clicked Previous");
-        } else if (intent.getAction().equals(Constants.ACTION.PLAY_ACTION)) {
-            if(player.isPlaying())
-                pauseSong();
-            else
-                playSong();
-            setUpAsForeground(CUR_SONG);
-        } else if (intent.getAction().equals(Constants.ACTION.NEXT_ACTION)) {
-            Log.i(LOG_TAG, "Clicked Next");
-        } else if (intent.getAction().equals(
-                Constants.ACTION.STOPFOREGROUND_ACTION)) {
-            Log.i(LOG_TAG, "Received Stop Foreground Intent");
-            stopForeground(true);
-            stopSelf();
-        }
-
+        try{
+            if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
+                player = new MediaPlayer(); // initialize it here
+                mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                player.setOnPreparedListener(this);
+                player.setOnErrorListener(this);
+                player.setOnBufferingUpdateListener(this);
+                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                initMusicPlayer();
+            }
+            else if (intent.getAction().equals(Constants.ACTION.PREV_ACTION)) {
+                Log.i(LOG_TAG, "Clicked Previous");
+            } else if (intent.getAction().equals(Constants.ACTION.PLAY_ACTION)) {
+                if(player.isPlaying())
+                    pauseSong();
+                else
+                    playSong();
+                setUpAsForeground();
+            } else if (intent.getAction().equals(Constants.ACTION.NEXT_ACTION)) {
+                Log.i(LOG_TAG, "Clicked Next");
+            } else if (intent.getAction().equals(
+                    Constants.ACTION.STOPFOREGROUND_ACTION)) {
+                Log.i(LOG_TAG, "Received Stop Foreground Intent");
+                stopForeground(true);
+                stopSelf();
+            }
+        }catch (Exception ignore){stopForeground(true);}
         return START_STICKY;
     }
 
@@ -77,21 +100,41 @@ public class PlayBackService extends Service implements
                 AudioManager.STREAM_MUSIC);
     }
 
-    public void playSong(ParseObject song){
+    public void playSong(){
         try
         {
-            if(player.isPlaying())
+            if(state == STATES.PAUSED)
+            {
+                player.start();
+                state = STATES.PLAYING;
+            }
+            else{
                 player.reset();
-            player.setDataSource(song.getString("url"));
-            CUR_SONG = song;
-            isPreparing = true;
-            player.prepareAsync();
+
+                CUR_SONG = CUR_SONG_LIST.get(CUR_INDEX);
+                player.setDataSource(CUR_SONG.getString("url"));
+                startAfterPrepare = true;
+                state = STATES.PREPARING;
+                player.prepareAsync();
+            }
+
         }catch (Exception e){
             e.printStackTrace();
         }
     }
-    public void showNotification(ParseObject song){
-        setUpAsForeground(song);
+
+    public void resetPlayer(){
+        player.reset();
+        state = STATES.IDLE;
+    }
+
+    public void setList(ArrayList<ParseObject> songs, int index){
+        this.CUR_SONG_LIST = songs;
+        this.CUR_INDEX = index;
+        CUR_SONG = CUR_SONG_LIST.get(CUR_INDEX);
+    }
+    public void showNotification(){
+        setUpAsForeground();
         isForeground = true;
     }
     public void stopNotification(){
@@ -99,24 +142,26 @@ public class PlayBackService extends Service implements
         isForeground = false;
     }
 
-    public boolean isPlaying(){
-        return player.isPlaying();
-    }
-
     public ParseObject getCurSong(){
         return CUR_SONG;
     }
 
     public void pauseSong(){
-        player.pause();
+        if(state == STATES.PREPARING)
+            startAfterPrepare = false;
+        else
+            player.pause();
+
+        state = STATES.PAUSED;
     }
 
-    public void playSong(){
-        player.start();
-    }
-
-    public int getTotalTime(){
-        return player.getDuration();
+    public int getTotalTime() throws Exception{
+        try{
+            if(state == STATES.PLAYING || state == STATES.PAUSED)
+                return player.getDuration();
+            else
+                throw new Exception("Preparing");
+        }catch (Exception e){throw e;}
     }
 
     public int getCurrentTime(){
@@ -129,7 +174,7 @@ public class PlayBackService extends Service implements
 
     @Override
     public boolean onUnbind(Intent intent){
-        player.stop();
+        player.reset();
         player.release();
         stopForeground(true);
         return false;
@@ -145,12 +190,11 @@ public class PlayBackService extends Service implements
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        isPreparing = false;
-
         if(startAfterPrepare){
             player.start();
+            state = STATES.PLAYING;
             if(isForeground)
-                setUpAsForeground(CUR_SONG);
+                setUpAsForeground();
         }
     }
 
@@ -169,9 +213,7 @@ public class PlayBackService extends Service implements
         }
     }
 
-
-
-    void setUpAsForeground(ParseObject song) {
+    void setUpAsForeground() {
         Intent notificationIntent = new Intent(this, Home.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
@@ -199,9 +241,9 @@ public class PlayBackService extends Service implements
 
         try{
             Notification notification = new NotificationCompat.Builder(this)
-                    .setContentTitle(song.getString("Title"))
-                    .setTicker(song.getString("Title"))
-                    .setContentText(song.getString("Album"))
+                    .setContentTitle(CUR_SONG.getString("Title"))
+                    .setTicker(CUR_SONG.getString("Title"))
+                    .setContentText(CUR_SONG.getString("Album"))
                     .setSmallIcon(R.drawable.ic_home)
                     .setContentIntent(pendingIntent)
                     .setOngoing(true)
