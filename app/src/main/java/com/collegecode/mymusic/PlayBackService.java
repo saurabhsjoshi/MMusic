@@ -69,20 +69,21 @@ public class PlayBackService extends Service implements
                 mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 player.setOnPreparedListener(this);
                 player.setOnErrorListener(this);
+                player.setOnCompletionListener(this);
                 player.setOnBufferingUpdateListener(this);
                 player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 initMusicPlayer();
             }
             else if (intent.getAction().equals(Constants.ACTION.PREV_ACTION)) {
-                Log.i(LOG_TAG, "Clicked Previous");
+                prevSong();
             } else if (intent.getAction().equals(Constants.ACTION.PLAY_ACTION)) {
-                if(player.isPlaying())
+                if(state == STATES.PLAYING || state == STATES.PREPARING)
                     pauseSong();
                 else
                     playSong();
                 setUpAsForeground();
             } else if (intent.getAction().equals(Constants.ACTION.NEXT_ACTION)) {
-                Log.i(LOG_TAG, "Clicked Next");
+                nextSong();
             } else if (intent.getAction().equals(
                     Constants.ACTION.STOPFOREGROUND_ACTION)) {
                 Log.i(LOG_TAG, "Received Stop Foreground Intent");
@@ -110,17 +111,38 @@ public class PlayBackService extends Service implements
             }
             else{
                 player.reset();
-
                 CUR_SONG = CUR_SONG_LIST.get(CUR_INDEX);
                 player.setDataSource(CUR_SONG.getString("url"));
                 startAfterPrepare = true;
                 state = STATES.PREPARING;
                 player.prepareAsync();
+
+                if(isForeground)
+                    setUpAsForeground();
             }
 
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void nextSong(){
+        resetPlayer();
+        ++CUR_INDEX;
+
+        if(CUR_INDEX > CUR_SONG_LIST.size())
+            CUR_INDEX = 0;
+        playSong();
+    }
+
+    public void prevSong(){
+        resetPlayer();
+        --CUR_INDEX;
+
+        if(CUR_INDEX < 0)
+            CUR_INDEX = CUR_SONG_LIST.size() - 1;
+
+        playSong();
     }
 
     public void resetPlayer(){
@@ -181,7 +203,11 @@ public class PlayBackService extends Service implements
     }
 
     @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {}
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        if((CUR_INDEX+1) < CUR_SONG_LIST.size())
+            nextSong();
+        sendBroadcast(new Intent("com.collegecode.playbackservice.changed"));
+    }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i2) {
@@ -193,8 +219,6 @@ public class PlayBackService extends Service implements
         if(startAfterPrepare){
             player.start();
             state = STATES.PLAYING;
-            if(isForeground)
-                setUpAsForeground();
         }
     }
 
@@ -234,7 +258,7 @@ public class PlayBackService extends Service implements
                 nextIntent, 0);
         int playPause;
 
-        if(player.isPlaying())
+        if(state == STATES.PLAYING || state == STATES.PREPARING)
             playPause = R.drawable.ic_media_pause;
         else
             playPause = R.drawable.ic_action_play;

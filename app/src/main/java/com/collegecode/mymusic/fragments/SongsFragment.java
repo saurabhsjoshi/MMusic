@@ -51,6 +51,8 @@ public class SongsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 try{
+                    if(playBackService == null)
+                        playBackService = ((Home) getActivity()).playBackService;
                     playBackService.setList(songs,i);
                     playBackService.resetPlayer();
                     playBackService.playSong();

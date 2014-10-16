@@ -1,9 +1,11 @@
 package com.collegecode.mymusic;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -41,6 +43,8 @@ public class Home extends ActionBarActivity {
     public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
+
+    private BroadcastReceiver receiver;
 
     public PlayBackService playBackService;
     private Intent playIntent;
@@ -88,6 +92,17 @@ public class Home extends ActionBarActivity {
             finish();
         }
 
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.collegecode.playbackservice.changed");
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                updateSmallPlayer();
+                updateBigPlayer();
+            }
+        };
+        registerReceiver(receiver, filter);
+
         getSupportActionBar().setIcon(R.drawable.ic_home);
 
         if(is_active) {
@@ -98,9 +113,6 @@ public class Home extends ActionBarActivity {
             progressDialog.show();
             connectToService();
         }
-    }
-
-    private void loadUI(){
 
         ViewPager mViewPager;
         SlidingTabLayout mSlidingTabLayout;
@@ -160,6 +172,10 @@ public class Home extends ActionBarActivity {
         });
     }
 
+    private void loadUI(){
+        updateSmallPlayer();
+    }
+
     public void connectToService() {
         if (playIntent == null) {
             playIntent = new Intent(this, PlayBackService.class);
@@ -167,6 +183,16 @@ public class Home extends ActionBarActivity {
             playIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
             startService(playIntent);
         }
+    }
+
+    public void updateBigPlayer(){
+        try{
+            NowPlayingFragment nowPlayingFragment;
+            nowPlayingFragment = (NowPlayingFragment)getSupportFragmentManager().findFragmentById(R.id.frm_nowPlaying);
+            nowPlayingFragment.setUI();
+
+        }
+        catch(Exception ignore){}
     }
 
     public void updateSmallPlayer(){
@@ -218,6 +244,7 @@ public class Home extends ActionBarActivity {
             unbindService(musicConnection);
             stopService(playIntent);
         }
+        unregisterReceiver(receiver);
         super.onDestroy();
     }
 

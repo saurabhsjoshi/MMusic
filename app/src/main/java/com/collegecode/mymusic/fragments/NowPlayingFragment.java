@@ -24,11 +24,11 @@ import java.util.concurrent.TimeUnit;
  * Created by saurabh on 14-10-03.
  */
 public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarChangeListener {
-    private ParseObject nowPlaying;
     PlayBackService instance;
     ImageButton pausePlay;
+    ImageView img_album_art, img_album_art_small;
     SeekBar seekBar;
-    TextView txt_cur;
+    TextView txt_cur, txt_title, txt_album;
     TextView txt_total;
     Thread t;
     STATES state;
@@ -43,15 +43,19 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
 
 
         View view = inflater.inflate(R.layout.fragment_nowplaying, container, false);
-        ImageView img = (ImageView) view.findViewById(R.id.img_albumArt);
+        img_album_art = (ImageView) view.findViewById(R.id.img_albumArt);
+        img_album_art_small = (ImageView) view.findViewById(R.id.img_small_albumArt);
 
-        nowPlaying = instance.getCurSong();
 
         pausePlay = (ImageButton) view.findViewById(R.id.btn_play);
+
         seekBar = (SeekBar) view.findViewById(R.id.seek_bar);
         seekBar.setOnSeekBarChangeListener(this);
+
         txt_cur = (TextView) view.findViewById(R.id.txt_cur_time);
         txt_total = (TextView) view.findViewById(R.id.txt_total_time);
+        txt_title = (TextView) view.findViewById(R.id.txt_title);
+        txt_album = (TextView) view.findViewById(R.id.txt_album);
 
         state = instance.state;
 
@@ -69,40 +73,35 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
                 setUI();
             }
         });
-
         setUI();
 
-        Picasso.with(getActivity())
-                .load(nowPlaying.getString("CoverArt"))
-                .fit()
-                .into(img);
-
-        Picasso.with(getActivity())
-                .load(nowPlaying.getString("CoverArt"))
-                .fit()
-                .into(((ImageView) view.findViewById(R.id.img_small_albumArt)));
-
-
-        TextView txt_title = (TextView) view.findViewById(R.id.txt_title);
-        TextView txt_album = (TextView) view.findViewById(R.id.txt_album);
-
-
-        txt_title.setText(nowPlaying.getString("Title"));
-        txt_album.setText(nowPlaying.getString("Album"));
         startThread();
         return view;
 
     }
 
-    private void setUI(){
+    public void setUI(){
+        ParseObject nowPlaying;
+        nowPlaying = instance.getCurSong();
         state = instance.state;
+
+        Picasso.with(getActivity())
+                .load(nowPlaying.getString("CoverArt"))
+                .fit()
+                .into(img_album_art);
+
+        Picasso.with(getActivity())
+                .load(nowPlaying.getString("CoverArt"))
+                .fit()
+                .into(img_album_art_small);
+
+        txt_title.setText(nowPlaying.getString("Title"));
+        txt_album.setText(nowPlaying.getString("Album"));
         if(state == STATES.PLAYING || state == STATES.PREPARING)
             pausePlay.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_media_pause));
         else
             pausePlay.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_action_play));
     }
-
-
 
     private void startThread(){
         if(t!=null)
@@ -112,7 +111,6 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
             @Override
             public void run() {
                 while (!Thread.interrupted()){
-                    System.out.println("Calledx");
                     if(instance!=null){
                         try{
                             getActivity().runOnUiThread(new Runnable() {
@@ -175,8 +173,6 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
                 txt_cur.setText(cur);
                 instance.scrub(i);
                 startThread();
-
-
             }catch (Exception ignore){}
         }
     }

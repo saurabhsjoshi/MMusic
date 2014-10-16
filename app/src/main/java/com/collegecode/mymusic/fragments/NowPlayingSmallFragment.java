@@ -58,24 +58,34 @@ public class NowPlayingSmallFragment extends Fragment {
 
     public void setUI(){
         try{
-            state = instance.state;
-            ParseObject obj = instance.getCurSong();
+            if(instance != null){
+                state = instance.state;
+                ParseObject obj = instance.getCurSong();
 
-            txt_title.setText(obj.getString("Title"));
-            txt_album.setText(obj.getString("Album"));
+                txt_title.setText(obj.getString("Title"));
+                txt_album.setText(obj.getString("Album"));
 
-            Picasso.with(getActivity())
-                    .load(obj.getString("CoverArt"))
-                    .fit()
-                    .into(img_art);
+                Picasso.with(getActivity())
+                        .load(obj.getString("CoverArt"))
+                        .fit()
+                        .into(img_art);
 
-            if(state == STATES.PLAYING || state == STATES.PREPARING){
-                img_play.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.ic_media_pause));
+                if(state == STATES.PLAYING || state == STATES.PREPARING){
+                    img_play.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.ic_media_pause));
+                }
+                else{
+                    img_play.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.ic_action_play));
+                }
             }
-            else{
-                img_play.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.ic_action_play));
+            else
+            {
+                instance = ((Home) getActivity()).playBackService;
+                if(instance!=null)
+                    setUI();
             }
-        }catch (Exception e){e.printStackTrace();}
+
+
+        }catch (Exception ignore){}
 
     }
 
