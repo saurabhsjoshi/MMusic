@@ -43,9 +43,9 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
 
 
         View view = inflater.inflate(R.layout.fragment_nowplaying, container, false);
+
         img_album_art = (ImageView) view.findViewById(R.id.img_albumArt);
         img_album_art_small = (ImageView) view.findViewById(R.id.img_small_albumArt);
-
 
         pausePlay = (ImageButton) view.findViewById(R.id.btn_play);
 
@@ -59,21 +59,41 @@ public class NowPlayingFragment extends Fragment implements SeekBar.OnSeekBarCha
 
         state = instance.state;
 
-        pausePlay.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(state == STATES.PLAYING || state == STATES.PREPARING){
-                    instance.pauseSong();
-                    stopThread();
-                }
-                else{
-                    instance.playSong();
-                    startThread();
+                switch (view.getId()){
+
+                    case R.id.btn_prev:
+                        instance.prevSong();
+                        break;
+
+                    case R.id.btn_next:
+                        instance.nextSong();
+                        break;
+
+                    case R.id.btn_play:
+                        if(state == STATES.PLAYING || state == STATES.PREPARING){
+                            instance.pauseSong();
+                            stopThread();
+                        }
+                        else{
+                            instance.playSong();
+                            startThread();
+                        }
+
+                        break;
                 }
                 setUI();
             }
-        });
-        setUI();
+        };
+
+        Integer a = 2;
+        int b = 2;
+
+        (view.findViewById(R.id.btn_prev)).setOnClickListener(listener);
+        (view.findViewById(R.id.btn_next)).setOnClickListener(listener);
+        pausePlay.setOnClickListener(listener);
 
         startThread();
         return view;

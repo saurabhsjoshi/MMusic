@@ -5,8 +5,8 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_view"
     android:layout_gravity="center"
-    android:layout_width="270dp"
-    android:layout_height="300dp"
+    android:layout_width="179dp"
+    android:layout_height="210dp"
     android:background="@drawable/song_list_selector"
     card_view:cardCornerRadius="8dp">
 

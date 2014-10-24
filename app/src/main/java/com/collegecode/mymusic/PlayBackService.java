@@ -194,11 +194,14 @@ public class PlayBackService extends Service implements
         player.seekTo(pos);
     }
 
-    @Override
-    public boolean onUnbind(Intent intent){
+    public void stopAll(){
         player.reset();
         player.release();
         stopForeground(true);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent){
         return false;
     }
 

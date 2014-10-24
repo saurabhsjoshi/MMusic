@@ -28,9 +28,17 @@
         <item name="actionModeBackground">@drawable/cab_background_top_style</item>
         <item name="actionModeSplitBackground">@drawable/cab_background_bottom_style</item>
         <item name="actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Style</item>
-
                 <!-- Light.DarkActionBar specific -->
         <item name="actionBarWidgetTheme">@style/Theme.Style.Widget</item>
+        <item name="colorPrimary">@color/branding</item>
+
+        <!-- colorPrimaryDark is used for the status bar -->
+        <item name="colorPrimaryDark">@color/branding</item>
+
+        <!-- colorAccent is used as the default value for colorControlActivated
+             which is used to tint widgets -->
+        <item name="colorAccent">@color/branding</item>
+
 
     </style>
 
@@ -57,7 +65,6 @@
 
     <style name="ActionBarTabStyle.Style" parent="@style/Widget.AppCompat.ActionBar.TabView">
         <item name="android:background">@drawable/tab_indicator_ab_style</item>
-
     </style>
 	
     <style name="DropDownNav.Style" parent="@style/Widget.AppCompat.Spinner.DropDown.ActionBar">

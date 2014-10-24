@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -21,6 +22,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.collegecode.mymusic.adapters.ViewPagerAdapter;
 import com.collegecode.mymusic.fragments.NowPlayingFragment;
@@ -28,6 +30,7 @@ import com.collegecode.mymusic.fragments.NowPlayingSmallFragment;
 import com.collegecode.mymusic.objects.Constants;
 import com.collegecode.mymusic.objects.STATES;
 import com.collegecode.mymusic.objects.SlidingTabs.SlidingTabLayout;
+import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -43,6 +46,8 @@ public class Home extends ActionBarActivity {
     public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
+    Context context;
+    private int CUR_SONGS_NUM = 0;
 
     private BroadcastReceiver receiver;
 
@@ -64,9 +69,15 @@ public class Home extends ActionBarActivity {
             query.fromLocalDatastore();
             query.findInBackground(new FindCallback<ParseObject>() {
                 public void done(List<ParseObject> lst_songs, ParseException e) {
-                    playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
-                    progressDialog.dismiss();
-                    loadUI();
+                    if(e == null){
+                        playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
+                        CUR_SONGS_NUM = lst_songs.size();
+                        progressDialog.dismiss();
+                        loadUI();
+                        checkForUpdate();
+                    }
+                    else
+                        Toast.makeText(context, "Error loading database!",Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -76,12 +87,31 @@ public class Home extends ActionBarActivity {
         }
     };
 
+    boolean is_active = true;
+
+    private void checkForUpdate(){
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
+        query.countInBackground(new CountCallback() {
+            @Override
+            public void done(int i, ParseException e) {
+                if(e == null){
+                    if(CUR_SONGS_NUM != i){
+                        if(is_active)
+                            new updateDatabase().execute();
+                    }
+                }
+            }
+        });
+    }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        boolean is_active = true;
+        context = this;
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -226,6 +256,7 @@ public class Home extends ActionBarActivity {
                 && playBackService.startAfterPrepare)
                 || playBackService.state == STATES.PLAYING))
             playBackService.showNotification();
+
         super.onPause();
     }
 
@@ -242,6 +273,7 @@ public class Home extends ActionBarActivity {
     protected void onDestroy() {
         if(playIntent != null){
             unbindService(musicConnection);
+            playBackService.stopAll();
             stopService(playIntent);
         }
         unregisterReceiver(receiver);
@@ -266,5 +298,67 @@ public class Home extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private class updateDatabase extends AsyncTask<Void,Void,Void>{
+        ProgressDialog dialog;
+        boolean success = false;
+
+        @Override
+        protected void onPreExecute() {
+            dialog = new ProgressDialog(context);
+            dialog.setMessage("Updating database...");
+            dialog.setIndeterminate(true);
+            dialog.setCancelable(false);
+            dialog.show();
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if(loadDatabase("Albums"))
+                if(loadDatabase("Music"))
+                    success = true;
+
+            return null;
+        }
+
+        private boolean loadDatabase(final String table){
+            ParseQuery<ParseObject> query = ParseQuery.getQuery(table);
+            try
+            {
+                ParseObject.unpinAll(table);
+                ParseObject.pinAll(table, query.find());
+            }catch (Exception ignore){return false;}
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            if(success){
+                Toast.makeText(context, "Updated music database!", Toast.LENGTH_LONG).show();
+                ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
+                query.orderByAscending("Title");
+                query.fromLocalDatastore();
+                query.findInBackground(new FindCallback<ParseObject>() {
+                    public void done(List<ParseObject> lst_songs, ParseException e) {
+                        if(e == null){
+                            playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
+                            CUR_SONGS_NUM = lst_songs.size();
+                            progressDialog.dismiss();
+                            loadUI();
+                            checkForUpdate();
+                        }
+                        else
+                            Toast.makeText(context, "Error loading database!",Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            else
+                Toast.makeText(getApplicationContext(), "Error occured while updating database!", Toast.LENGTH_LONG).show();
+        }
     }
 }
