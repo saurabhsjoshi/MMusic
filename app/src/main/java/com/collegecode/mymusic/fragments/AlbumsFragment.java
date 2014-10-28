@@ -1,6 +1,5 @@
 package com.collegecode.mymusic.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.collegecode.mymusic.AlbumActivity;
+import com.collegecode.mymusic.Home;
 import com.collegecode.mymusic.R;
 import com.collegecode.mymusic.adapters.AlbumsGridAdapter;
 import com.parse.FindCallback;
@@ -46,12 +46,9 @@ public class AlbumsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                Intent intent = new Intent(getActivity(), AlbumActivity.class);
-
-                intent.putExtra("AlbumID",((ParseObject) gridview.getItemAtPosition(i)).getNumber("AlbumID"));
-                getActivity().startActivity(intent);
-
-                getActivity().overridePendingTransition(R.anim.pop_enter, R.anim.pop_exit);
+                AlbumActivity.launch((Home)getActivity(),
+                        view.findViewById(R.id.img_album),
+                        ((ParseObject)gridview.getItemAtPosition(i)).getNumber("AlbumID"));
             }
         });
 

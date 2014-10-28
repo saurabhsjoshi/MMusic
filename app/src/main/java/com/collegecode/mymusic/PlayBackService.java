@@ -130,8 +130,9 @@ public class PlayBackService extends Service implements
         resetPlayer();
         ++CUR_INDEX;
 
-        if(CUR_INDEX > CUR_SONG_LIST.size())
+        if(CUR_INDEX > CUR_SONG_LIST.size()-1)
             CUR_INDEX = 0;
+
         playSong();
     }
 
@@ -268,6 +269,7 @@ public class PlayBackService extends Service implements
 
         try{
             Notification notification = new NotificationCompat.Builder(this)
+                    .setTicker(CUR_SONG.getString("Title"))
                     .setContentTitle(CUR_SONG.getString("Title"))
                     .setTicker(CUR_SONG.getString("Title"))
                     .setContentText(CUR_SONG.getString("Album"))

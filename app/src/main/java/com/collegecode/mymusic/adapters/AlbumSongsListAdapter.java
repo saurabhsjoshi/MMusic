@@ -43,11 +43,8 @@ public class AlbumSongsListAdapter extends ArrayAdapter<ParseObject> {
         if(convertView == null){
             viewHolder = new ViewHolder();
             convertView = inflater.inflate(R.layout.item_album_song,parent,false);
-
-
             viewHolder.txt_title = (TextView) convertView.findViewById(R.id.txt_title);
             viewHolder.txt_album = (TextView) convertView.findViewById(R.id.txt_album);
-
             convertView.setTag(viewHolder);
         }
         else

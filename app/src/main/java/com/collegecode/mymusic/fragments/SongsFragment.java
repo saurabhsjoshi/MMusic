@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.collegecode.mymusic.BaseActivity;
 import com.collegecode.mymusic.Home;
 import com.collegecode.mymusic.PlayBackService;
 import com.collegecode.mymusic.R;
@@ -27,14 +28,19 @@ public class SongsFragment extends Fragment {
 
     private PlayBackService playBackService;
     private ArrayList<ParseObject> songs;
+    ListView listView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_songs,container, false);
-        final ListView listView = (ListView) view.findViewById(R.id.list);
-        playBackService = ((Home) getActivity()).playBackService;
+        listView = (ListView) view.findViewById(R.id.list);
+        updateUI();
+        return view;
+    }
 
+    public void updateUI(){
+        playBackService = ((BaseActivity) getActivity()).getPlayBackService();
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
         query.orderByAscending("Title");
@@ -60,6 +66,6 @@ public class SongsFragment extends Fragment {
                 }catch (Exception e){e.printStackTrace();}
             }
         });
-        return view;
+
     }
 }

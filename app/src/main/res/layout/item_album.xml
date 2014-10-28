@@ -5,9 +5,10 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_view"
     android:layout_gravity="center"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
     android:layout_width="179dp"
     android:layout_height="210dp"
-    android:background="@drawable/song_list_selector"
     card_view:cardCornerRadius="8dp">
 
     <RelativeLayout
@@ -21,6 +22,7 @@
             android:id="@+id/img_album"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@android:color/transparent"
             android:contentDescription="@string/hello_world"
             />
 

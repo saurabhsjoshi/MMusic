@@ -19,6 +19,7 @@ package com.collegecode.mymusic.objects.SlidingTabs;
  * limitations under the License.
  */
 
+import android.graphics.Color;
 import android.view.View;
 
 
@@ -179,7 +180,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, TAB_VIEW_TEXT_SIZE_SP);
         textView.setTypeface(Typeface.DEFAULT_BOLD);
-
+        textView.setTextColor(Color.rgb(229,229,229));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             // If we're running on Honeycomb or newer, then we can use the Theme's
             // selectableItemBackground to ensure that the View has a pressed state

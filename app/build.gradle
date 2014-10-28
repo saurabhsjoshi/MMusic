@@ -41,6 +41,7 @@ dependencies {
     compile 'com.github.johnkil.android-robototextview:robototextview:2.1.0'
     compile 'com.sothree.slidinguppanel:library:+'
     compile 'com.squareup.picasso:picasso:2.3.3'
-    //compile 'com.squareup.okhttp:okhttp:2.+'
-    //compile 'com.squareup.okhttp:okhttp-urlconnection:2.+'
+    compile 'com.shamanland:fab:0.0.3'
+    compile 'com.squareup.okhttp:okhttp:2.+'
+    compile 'com.squareup.okhttp:okhttp-urlconnection:2.+'
 }

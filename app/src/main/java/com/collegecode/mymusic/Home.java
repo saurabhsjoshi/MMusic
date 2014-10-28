@@ -18,7 +18,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.IntentCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,12 +40,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class Home extends ActionBarActivity {
+public class Home extends BaseActivity {
+
+
 
     public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
     Context context;
+    ViewPager mViewPager;
     private int CUR_SONGS_NUM = 0;
 
     private BroadcastReceiver receiver;
@@ -73,6 +75,7 @@ public class Home extends ActionBarActivity {
                         playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
                         CUR_SONGS_NUM = lst_songs.size();
                         progressDialog.dismiss();
+                        setPlayBackService(playBackService);
                         loadUI();
                         checkForUpdate();
                     }
@@ -105,11 +108,15 @@ public class Home extends ActionBarActivity {
     }
 
 
+    @Override
+    protected int getLayoutResource() {
+        return R.layout.activity_home;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setActionBarIcon(R.drawable.ic_home);
 
         context = this;
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -133,19 +140,22 @@ public class Home extends ActionBarActivity {
         };
         registerReceiver(receiver, filter);
 
-        getSupportActionBar().setIcon(R.drawable.ic_home);
-
         if(is_active) {
-            progressDialog = new ProgressDialog(this);
-            progressDialog.setIndeterminate(true);
-            progressDialog.setMessage("Loading...");
-            progressDialog.setCancelable(true);
-            progressDialog.show();
-            connectToService();
+            if(getPlayBackService() == null){
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setIndeterminate(true);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(true);
+                progressDialog.show();
+                connectToService();
+            }
+            else
+                playBackService = getPlayBackService();
+
         }
 
-        ViewPager mViewPager;
-        SlidingTabLayout mSlidingTabLayout;
+
+        final SlidingTabLayout mSlidingTabLayout;
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -188,15 +198,18 @@ public class Home extends ActionBarActivity {
         transaction.replace(R.id.frm_nowPlaying, new NowPlayingSmallFragment());
         transaction.commit();
 
+        mSlidingTabLayout.setSelectedIndicatorColors(Color.GRAY);
+
+
         mSlidingTabLayout.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
             @Override
             public int getIndicatorColor(int position) {
-                return Color.rgb(0, 153, 204);
+                return Color.rgb(229,229,229);
             }
 
             @Override
             public int getDividerColor(int position) {
-                return Color.LTGRAY;
+                return Color.TRANSPARENT;
             }
 
         });
@@ -204,6 +217,7 @@ public class Home extends ActionBarActivity {
 
     private void loadUI(){
         updateSmallPlayer();
+
     }
 
     public void connectToService() {
@@ -251,7 +265,7 @@ public class Home extends ActionBarActivity {
 
     @Override
     protected void onPause() {
-        if(playBackService!=null
+        if(playBackService != null
                 &&((playBackService.state == STATES.PREPARING
                 && playBackService.startAfterPrepare)
                 || playBackService.state == STATES.PLAYING))
@@ -262,7 +276,10 @@ public class Home extends ActionBarActivity {
 
     @Override
     protected void onResume() {
-        if(playBackService!=null){
+        if(getPlayBackService() != null){
+            if(playBackService == null)
+                playBackService = getPlayBackService();
+
             playBackService.stopNotification();
             updateSmallPlayer();
         }
@@ -274,6 +291,7 @@ public class Home extends ActionBarActivity {
         if(playIntent != null){
             unbindService(musicConnection);
             playBackService.stopAll();
+            setPlayBackService(null);
             stopService(playIntent);
         }
         unregisterReceiver(receiver);
@@ -348,7 +366,11 @@ public class Home extends ActionBarActivity {
                             playBackService.setList(new ArrayList<ParseObject>(lst_songs), 0);
                             CUR_SONGS_NUM = lst_songs.size();
                             progressDialog.dismiss();
-                            loadUI();
+
+                            final FragmentManager fragmentManager = getSupportFragmentManager();
+                            mViewPager = (ViewPager) findViewById(R.id.viewpager);
+                            mViewPager.setAdapter(new ViewPagerAdapter(fragmentManager));
+
                             checkForUpdate();
                         }
                         else

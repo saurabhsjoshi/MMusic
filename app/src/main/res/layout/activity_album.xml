@@ -4,11 +4,17 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
+    <include
+    android:id="@+id/toolbar"
+    layout="@layout/toolbar"
+    />
 
     <RelativeLayout
         android:id="@+id/details_container"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_below="@id/toolbar"
+        android:layout_height="wrap_content"
+        android:background="@color/branding">
 
         <ImageView
             android:id="@+id/img_albumArt"
@@ -16,9 +22,9 @@
             android:layout_marginLeft="15dp"
             android:layout_width="80dp"
             android:layout_height="80dp"
-
-            android:background="@drawable/image_frame"
+            android:background="@android:color/transparent"
             android:layout_alignParentTop="true"
+            android:layout_marginBottom="15dp"
             android:layout_alignParentLeft="true"
             />
 
@@ -26,23 +32,62 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:id="@+id/txt_title"
-            android:layout_toRightOf="@id/img_albumArt"
+            android:id="@+id/txt_artist"
             android:layout_marginLeft="10dp"
-            android:textSize="22sp"
-            app:typeface="roboto_bold"
+            android:layout_toRightOf="@id/img_albumArt"
+            android:textSize="13sp"
+            android:textColor="@android:color/white"
+            app:typeface="roboto_light"
             />
 
-        </RelativeLayout>
+        <com.devspark.robototextview.widget.RobotoTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_title"
+            android:layout_marginTop="5dp"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            app:typeface="roboto_bold"
+            android:layout_below="@+id/txt_artist"
+            android:layout_alignLeft="@+id/txt_artist"
+            android:layout_alignStart="@+id/txt_artist" />
+
+    </RelativeLayout>
+
+    <com.devspark.robototextview.widget.RobotoButton
+        android:id="@+id/btn_buy"
+        android:layout_width="57dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="5dp"
+        android:padding="3dp"
+        android:textSize="12sp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/button_frame_white"
+        android:textColor="@color/white"
+        app:typeface="roboto_bold"
+        android:text="₹259.99"/>
 
 
     <ListView
-        android:layout_marginLeft="5dp"
         android:layout_below="@id/details_container"
-        android:layout_marginTop="5dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="0dp"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:listSelector="#00000000"
         android:id="@+id/list">
     </ListView>
+
+    <com.shamanland.fab.FloatingActionButton
+        android:id="@+id/btn_playAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="134dp"
+        android:layout_marginRight="10dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_action_play_dark"
+        app:floatingActionButtonColor="@color/branding"
+        app:floatingActionButtonSize="normal"
+        />
 </RelativeLayout>

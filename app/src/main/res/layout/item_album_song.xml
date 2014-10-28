@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:paddingBottom="10dp"
     android:paddingTop="10dp"
-    android:background="@drawable/song_list_selector">
+    android:paddingLeft="5dp">
 
     <com.devspark.robototextview.widget.RobotoTextView
         android:id="@+id/txt_title"

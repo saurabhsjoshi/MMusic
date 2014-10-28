@@ -18,12 +18,11 @@
 -->
 
 <resources>
-
-    <style name="Theme.Style" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+    <style name="Theme.Style" parent="@style/Theme.AppCompat.Light">
         <item name="colorPrimary">@color/branding</item>
         <item name="colorPrimaryDark">@color/branding</item>
         <item name="android:statusBarColor">@color/branding</item>
         <item name="colorAccent">@color/branding</item>
-        <item name="android:textColor">@android:color/black</item>
+        <item name="windowActionBar">false</item>
     </style>
 </resources>
