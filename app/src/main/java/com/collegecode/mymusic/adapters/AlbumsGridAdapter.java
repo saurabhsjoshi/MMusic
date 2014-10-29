@@ -69,6 +69,7 @@ public class AlbumsGridAdapter extends BaseAdapter {
 
         viewHolder.txt_title.setText(albums.get(i).getString("Title"));
 
+
         Picasso.with(context)
                 .load(albums.get(i).getString("AlbumArt"))
                 .transform(new RoundedTransformation(16))
