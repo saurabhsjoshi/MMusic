@@ -140,7 +140,7 @@ public class PlayBackService extends Service implements
         int pos = player.getCurrentPosition();
         state = STATES.PREPARING;
         try{
-            Thread.sleep(2600);
+            Thread.sleep(2700);
             player.reset();
             player.setDataSource(CUR_SONG.getString("url"));
             player.prepare();
