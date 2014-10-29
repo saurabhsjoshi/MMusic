@@ -58,6 +58,8 @@ public class Home extends BaseActivity {
 
     private ProgressDialog progressDialog;
 
+    boolean is_active = true;
+
     //connect to the service
     private ServiceConnection musicConnection = new ServiceConnection(){
 
@@ -90,8 +92,6 @@ public class Home extends BaseActivity {
         }
     };
 
-    boolean is_active = true;
-
     private void checkForUpdate(){
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
         query.countInBackground(new CountCallback() {
@@ -106,7 +106,6 @@ public class Home extends BaseActivity {
             }
         });
     }
-
 
     @Override
     protected int getLayoutResource() {
@@ -129,6 +128,7 @@ public class Home extends BaseActivity {
             finish();
         }
 
+        //On Song change
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.collegecode.playbackservice.changed");
         receiver = new BroadcastReceiver() {

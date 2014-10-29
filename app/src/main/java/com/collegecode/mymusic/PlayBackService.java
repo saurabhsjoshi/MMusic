@@ -4,13 +4,17 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.collegecode.mymusic.objects.Constants;
@@ -47,6 +51,9 @@ public class PlayBackService extends Service implements
     //Check if playing is cancelled
     public boolean startAfterPrepare = true;
 
+    private boolean isInCall = false;
+    private boolean songWasPlaying = false;
+
     //MediaPlayer instance
     private MediaPlayer player;
 
@@ -56,8 +63,36 @@ public class PlayBackService extends Service implements
     //Logger
     private static final String LOG_TAG = "com.collegecode.playbackservice";
 
+    private final BroadcastReceiver phoneStateChangeListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            TelephonyManager mgr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+            if(mgr.getCallState() == TelephonyManager.CALL_STATE_RINGING || mgr.getCallState() == TelephonyManager.CALL_STATE_OFFHOOK){
+                isInCall = true;
+                if(state == STATES.PLAYING || state == STATES.PREPARING){
+                    pauseSong();
+                    songWasPlaying = true;
+                }
+            }
+            else if(isInCall && songWasPlaying && mgr.getCallState() == TelephonyManager.CALL_STATE_IDLE){
+                playSongAfterInterval();
+                isInCall = false;
+                songWasPlaying = false;
+            }
+        }
+    };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(android.telephony.TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+        registerReceiver(phoneStateChangeListener, filter);
+    }
+
     @Override
     public void onDestroy() {
+        unregisterReceiver(phoneStateChangeListener);
         super.onDestroy();
     }
 
@@ -99,6 +134,20 @@ public class PlayBackService extends Service implements
                 PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(
                 AudioManager.STREAM_MUSIC);
+    }
+
+    private void playSongAfterInterval(){
+        int pos = player.getCurrentPosition();
+        state = STATES.PREPARING;
+        try{
+            Thread.sleep(2600);
+            player.reset();
+            player.setDataSource(CUR_SONG.getString("url"));
+            player.prepare();
+            player.seekTo(pos);
+            player.start();
+            state = STATES.PLAYING;
+        }catch (Exception e){e.printStackTrace();}
     }
 
     public void playSong(){
