@@ -20,7 +20,7 @@
 
     <style name="Theme.Style" parent="AppTheme.Base"/>
 
-    <style name="AppTheme.Base" parent="Theme.AppCompat.Light">
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/branding</item>
         <item name="colorPrimaryDark">@color/branding</item>
         <item name="android:windowNoTitle">true</item>

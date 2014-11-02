@@ -17,7 +17,9 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.IntentCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -250,13 +252,6 @@ public class Home extends BaseActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.home, menu);
-        return true;
-    }
-
-    @Override
     protected void onStop() {
         if(playBackService!=null && playBackService.state == STATES.PLAYING)
             playBackService.showNotification();
@@ -307,12 +302,26 @@ public class Home extends BaseActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.home, menu);
+        MenuItem menuItem = menu.findItem(R.id.action_search);
+
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(menuItem);
+        searchView.setIconifiedByDefault(true);
+        searchView.setQueryHint("Search music");
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
         if (id == R.id.action_settings) {
+            Toast.makeText(this,"Working on this..",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        else if(id == R.id.action_search){
             return true;
         }
         return super.onOptionsItemSelected(item);
