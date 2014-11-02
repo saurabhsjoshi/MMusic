@@ -40,7 +40,7 @@ public class SongsFragment extends Fragment {
     }
 
     public void updateUI(){
-        playBackService = ((BaseActivity) getActivity()).getPlayBackService();
+        playBackService = BaseActivity.getPlayBackService();
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Music");
         query.orderByAscending("Title");
@@ -52,7 +52,6 @@ public class SongsFragment extends Fragment {
                 listView.setAdapter(new SongsListAdapter(getActivity(),0, songs));
             }
         });
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -66,6 +65,5 @@ public class SongsFragment extends Fragment {
                 }catch (Exception e){e.printStackTrace();}
             }
         });
-
     }
 }

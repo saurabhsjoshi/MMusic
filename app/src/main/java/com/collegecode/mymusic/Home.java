@@ -17,9 +17,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.IntentCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -219,7 +217,6 @@ public class Home extends BaseActivity {
 
     private void loadUI(){
         updateSmallPlayer();
-
     }
 
     public void connectToService() {
@@ -305,11 +302,7 @@ public class Home extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
-        MenuItem menuItem = menu.findItem(R.id.action_search);
 
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(menuItem);
-        searchView.setIconifiedByDefault(true);
-        searchView.setQueryHint("Search music");
         return true;
     }
 
@@ -322,6 +315,7 @@ public class Home extends BaseActivity {
             return true;
         }
         else if(id == R.id.action_search){
+            startActivity(new Intent(this, SearchResultsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -379,7 +373,6 @@ public class Home extends BaseActivity {
                             final FragmentManager fragmentManager = getSupportFragmentManager();
                             mViewPager = (ViewPager) findViewById(R.id.viewpager);
                             mViewPager.setAdapter(new ViewPagerAdapter(fragmentManager));
-
                             checkForUpdate();
                         }
                         else
