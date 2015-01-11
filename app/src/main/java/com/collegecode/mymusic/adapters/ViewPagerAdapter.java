@@ -11,7 +11,7 @@ import com.collegecode.mymusic.fragments.SongsFragment;
  * Created by saurabh on 14-09-27.
  */
 public class ViewPagerAdapter extends FragmentPagerAdapter {
-    String titles[] = {"    Albums    ","    Songs    ","    Exclusive    " };
+    String titles[] = {"    Albums    ","    Songs    ","    Exclusive    ", "    Market    " };
     public ViewPagerAdapter(FragmentManager fm) {
         super(fm);
     }
@@ -22,13 +22,15 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
             return new AlbumsFragment();
         else if (i == 2)
             return  new Fragment();
+        else if(i == 3)
+            return  new Fragment();
         else
             return new SongsFragment();
     }
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Override

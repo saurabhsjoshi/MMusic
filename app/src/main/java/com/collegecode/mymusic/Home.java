@@ -42,8 +42,6 @@ import java.util.List;
 
 public class Home extends BaseActivity {
 
-
-
     public SlidingUpPanelLayout mLayout;
     FragmentTransaction transaction;
     SharedPreferences preferences;
@@ -153,7 +151,6 @@ public class Home extends BaseActivity {
                 playBackService = getPlayBackService();
 
         }
-
 
         final SlidingTabLayout mSlidingTabLayout;
 
